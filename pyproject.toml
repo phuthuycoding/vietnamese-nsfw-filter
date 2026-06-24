@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vietnamese-nsfw-filter"
+version = "0.1.0"
+description = "Lexicon-based NSFW/explicit text detector for Vietnamese — font-corruption tolerant, no model/GPU."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "phuthuycoding" }]
+keywords = ["vietnamese", "nsfw", "content-moderation", "profanity-filter", "nlp", "text-classification"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Vietnamese",
+    "Programming Language :: Python :: 3",
+    "Topic :: Text Processing :: Linguistic",
+]
+dependencies = []  # stdlib only (re, unicodedata)
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.urls]
+Homepage = "https://github.com/phuthuycoding/vietnamese-nsfw-filter"
+Repository = "https://github.com/phuthuycoding/vietnamese-nsfw-filter"
+Issues = "https://github.com/phuthuycoding/vietnamese-nsfw-filter/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vietnamese_nsfw_filter"]
