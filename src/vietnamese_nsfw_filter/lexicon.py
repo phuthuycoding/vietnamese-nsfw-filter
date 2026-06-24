@@ -61,8 +61,9 @@ ENGLISH = [
 
 # --- Layer 3: matched WITH diacritics (precise). Native vulgar + homograph-prone Sino-Viet. ---
 ACCENT = [
-    # native vulgar single words (diacritics distinguish: buồi!=buổi, địt!=đít, lồn!=lớn, nứng!=nung)
-    "lồn", "cặc", "buồi", "địt", "đụ", "nứng", "chịch", "lìn", "đĩ",
+    # teencode chửi tục viết tắt (rõ nghĩa NSFW)
+    "vcl", "vkl", "vlz", "clmm", "đcm", "đkm", "đmm", "đệt", "đậu má", "đậu xanh rau má",
+    "đĩ", "đĩ chó", "máu dâm", "dê xồm", "dê già", "biến thái", "dâm tặc",
     # vulgar / profanity compounds
     "địt mẹ", "địt mẹ mày", "đụ má", "đụ mẹ", "đéo mẹ", "vãi lồn", "vãi cặc",
     "bú lồn", "ăn cặc", "bú cặc", "bú buồi", "liếm lồn", "mút cặc",
@@ -78,12 +79,21 @@ ACCENT = [
 ]
 
 # --- Layer 4 (OPT-IN): high-recall, FP-prone. Only counted when include_weak=True. ---
+# Gồm tiếng lóng / vùng miền / ẩn dụ — đa nghĩa nên FP cao (chim/bướm/cu = con vật, cô bé = bé gái...).
 WEAK = [
+    # bộ phận (đời thường, dễ FP)
     "vú", "mông", "ngực", "dái", "đùi non", "eo thon", "ngực trần", "khe ngực",
+    # hành vi (đời thường)
     "bú", "mút", "liếm", "đút", "nhét", "thọc", "vê", "bóp", "sờ", "sờ soạng",
     "lên giường", "ngủ với", "quan hệ", "động phòng", "ham muốn", "thèm khát",
     "khỏa thân", "trần truồng", "trần như nhộng", "lõa thể",
     "rên rỉ", "rên la", "thở dốc", "hổn hển", "ướt đẫm", "khêu gợi", "gợi cảm", "phê",
+    # lóng / vùng miền / ẩn dụ bộ phận (đa nghĩa -> FP)
+    "chim", "bướm", "cu", "cò", "cậu nhỏ", "thằng nhỏ", "cô bé", "của quý",
+    "chỗ ấy", "chỗ kín", "vùng kín", "tam giác mật", "núi đôi", "gò bồng đảo",
+    "đào tiên", "bưởi", "quả đào", "làm nháy", "quất", "chén", "xơi",
+    # teencode chửi mơ hồ (ngắn, dễ FP)
+    "vl", "đm", "dm", "cc", "vãi",
 ]
 
 _NON_AZ = re.compile(r"[^a-z\s]+")
@@ -95,9 +105,16 @@ def _build(terms):
     return re.compile(r"\b(?:" + "|".join(re.escape(t) for t in terms) + r")\b", re.UNICODE)
 
 
+# Native vulgar stems matched REPEAT-TOLERANT to defeat character-stretching evasion
+# ("địtttt", "lồnnn", "đụuu"). Diacritics keep them distinct from normal words.
+NATIVE_VULGAR = ["lồn", "cặc", "buồi", "địt", "đụ", "nứng", "chịch", "lìn"]
+
 _DEACCENT_PATTERN = _build(SAFE_DEACCENT + ENGLISH)
 _ACCENT_PATTERN = _build(ACCENT)
 _WEAK_PATTERN = _build(WEAK)
+_NATIVE_PATTERN = re.compile(
+    r"\b(?:" + "|".join(re.escape(t) + "+" for t in NATIVE_VULGAR) + r")\b", re.UNICODE
+)
 
 
 def deaccent(s: str) -> str:
@@ -125,7 +142,9 @@ def count_hits(text: str, include_weak: bool = False) -> int:
     """
     deacc = deaccent(text)
     keep = _norm_keep(text)
-    n = len(_DEACCENT_PATTERN.findall(deacc)) + len(_ACCENT_PATTERN.findall(keep))
+    n = (len(_DEACCENT_PATTERN.findall(deacc))
+         + len(_ACCENT_PATTERN.findall(keep))
+         + len(_NATIVE_PATTERN.findall(keep)))
     if include_weak:
         n += len(_WEAK_PATTERN.findall(keep))
     return n

@@ -45,6 +45,22 @@ def test_weak_layer_opt_in():
     assert broad > base
 
 
+def test_char_stretching_evasion():
+    # né filter bằng kéo dài ký tự vẫn bị bắt
+    assert count_hits("đồ lồnnnn, địtttt mẹ, cặcccc") >= 3
+
+
+def test_teencode_profanity():
+    assert count_hits("vcl thằng này, vkl, đcm mày, đồ đĩ chó") >= 3
+
+
+def test_regional_slang_in_weak_layer():
+    # lóng/ẩn dụ vùng miền chỉ tính khi bật weak (vì đa nghĩa)
+    text = "Cái chim với cái bướm, cậu nhỏ, của quý, vùng kín, núi đôi."
+    assert count_hits(text) == 0
+    assert count_hits(text, include_weak=True) >= 4
+
+
 def test_no_false_positive_on_homographs():
     # buổi/lớn/đám/đảm KHÔNG bị nhầm thành buồi/lồn/dâm
     text = ("Buổi sáng đám đông lớn dần, cô gái đảm đang nấu cơm, "
