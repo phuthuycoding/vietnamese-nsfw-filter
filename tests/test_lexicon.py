@@ -61,6 +61,16 @@ def test_regional_slang_in_weak_layer():
     assert count_hits(text, include_weak=True) >= 4
 
 
+def test_no_fp_on_combat_and_homographs():
+    # văn tiên hiệp/hành động + đồng âm KHÔNG bị đếm (đâm vào/tiến nhập/trận trường/ám đạo...)
+    text = ("Hắn đâm vào, thọc vào, thâm nhập, tiến nhập đan điền, mở hỏa huyệt, mạch huyệt. "
+            "Ra trận trường, làm việc tinh tế, đi qua ám đạo theo đường cũ, giao hoán bảo vật, "
+            "ăn cục khoai, nhà thờ cổ.") * 3
+    assert count_hits(text) < 3, f"FP! count={count_hits(text)}"
+    # bản sex thật (đúng dấu) vẫn bắt
+    assert count_hits("dương vật cọ vào âm đạo, dương cụ cương cứng, làm tình, đạt cực khoái") >= 4
+
+
 def test_no_false_positive_on_homographs():
     # buổi/lớn/đám/đảm KHÔNG bị nhầm thành buồi/lồn/dâm
     text = ("Buổi sáng đám đông lớn dần, cô gái đảm đang nấu cơm, "

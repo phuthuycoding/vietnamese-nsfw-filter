@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vietnamese-nsfw-filter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lexicon-based NSFW/explicit text detector for Vietnamese — font-corruption tolerant, no model/GPU."
 readme = "README.md"
 requires-python = ">=3.8"

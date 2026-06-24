@@ -26,27 +26,25 @@ DEFAULT_HIT_THRESHOLD = 3  # a chunk is "explicit" if it matches >= this many ke
 # --- Layer 1: de-accented, font-tolerant. Audited: de-accented form has no common collision. ---
 SAFE_DEACCENT = [
     # genitalia (clinical Sino-Vietnamese / anatomical)
-    "duong vat", "duong can", "duong cu", "duong khoi", "cuong vat",
-    "am dao", "am ho", "am vat", "am he", "am mao",
-    "ngoc hanh", "quy dau", "bao quy dau", "cu vat", "nhuc bong", "num vu",
-    "hoa huyet", "mat huyet", "hau huyet", "huyet khau", "hau dinh", "hau mon",
-    "hoa kinh", "noi am", "tinh hoan", "long mu", "tu cung", "ham huyet",
+    "duong vat", "duong can", "duong khoi", "cuong vat",
+    "am ho", "am vat", "am he", "am mao",
+    "quy dau", "bao quy dau", "cu vat", "nhuc bong", "num vu",
+    "hau dinh", "hau mon", "tinh hoan", "long mu",
     # fluids
-    "tinh dich", "tinh trung", "xuat tinh", "phun tinh", "phong tinh",
+    "tinh dich", "tinh trung", "xuat tinh", "phun tinh",
     "dam thuy", "dam dich", "ai dich", "hoa dich", "bach dich", "dam thui",
-    # acts
-    "lam tinh", "giao hop", "giao cau", "giao hoan", "giao phoi", "an ai", "hoan ai",
-    "khau giao", "tham nhap", "dam vao", "dut vao", "cam vao", "thoc vao", "dam thuc",
-    "tien nhap", "dao luoi", "dau luoi", "co xat", "cuong cung", "thu dam", "tu suong",
-    "quan he tinh duc", "lam chuyen ay",
+    # acts (BỎ động từ đa nghĩa: tham nhap/dam vao/dut vao/cam vao/thoc vao/tien nhap +
+    # dao luoi/dau luoi/co xat/dam thuc -> trùng văn chiến đấu/đời thường)
+    "giao hop", "giao cau", "giao phoi", "an ai", "hoan ai", "khau giao",
+    "thu dam", "tu suong", "quan he tinh duc", "lam chuyen ay",
     # states / arousal / lust
-    "dam duc", "dam loan", "dam tien", "dam dat", "dam o", "gian dam", "ta dam",
-    "au dam", "phat tinh", "sac tinh", "sac duc", "cuc khoai", "khoai cam", "khoai lac",
-    "xuan tinh", "cuong dam", "cuong duc", "duc vong", "duc tinh", "hieu dam", "hao sac",
-    "dam buc", "thong dam", "loan luan", "nhuc duc", "tham duc",
-    # crimes / prostitution
-    "hiep dam", "cuong gian", "cuong hiep", "kich duc", "kich dam", "ham hiep", "ga tinh",
-    "mai dam", "ban dam", "gai goi", "gai diem", "diem dang", "lau xanh", "nha tho",
+    "dam duc", "dam loan", "dam dat", "dam o", "gian dam", "ta dam", "au dam",
+    "sac duc", "khoai cam", "xuan tinh", "cuong dam", "cuong duc",
+    "duc vong", "duc tinh", "hieu dam", "hao sac", "nhuc duc", "tham duc",
+    "thong dam", "loan luan",
+    # crimes / prostitution (BỎ "nha tho" -> trùng "nhà thờ"; "hoa/mat/hau huyet" = huyệt đạo)
+    "cuong gian", "kich duc", "kich dam", "ham hiep", "ga tinh",
+    "mai dam", "ban dam", "gai goi", "gai diem", "lau xanh",
 ]
 
 # --- Layer 2: borrowed English explicit words (ascii, matched on de-accented text). ---
@@ -72,10 +70,17 @@ ACCENT = [
     "nứng lồn", "nứng cặc", "nứng tình", "đầu buồi", "hòn dái", "bóp dái",
     "gái điếm", "đĩ điếm", "con điếm", "phá trinh",
     # Sino-Vietnamese that collide when de-accented -> keep diacritics
+    # (BỎ "đăng đỉnh"/"lên đỉnh"/"trương to" -> trùng leo đỉnh núi / phồng to trong tiên hiệp)
     "dâm đãng", "dâm phụ", "dâm dật", "dâm tà", "bạo dâm", "cuồng dâm", "hiếu dâm",
-    "bắn tinh", "phóng tinh", "đăng đỉnh", "lên đỉnh", "động dục", "trương to",
+    "bắn tinh", "phóng tinh", "động dục",
     "nhũ hoa", "đầu ngực", "phòng the", "truy hoan", "lẳng lơ", "cưỡng bức",
     "mây mưa", "vân vũ", "ái ân", "ân ái", "động phòng",
+    # CHUYỂN từ lớp bỏ-dấu sang (bỏ dấu trùng tiên hiệp/đời thường, giữ dấu để phân biệt):
+    # âm đạo≠ám đạo, dương cụ≠đường cũ, ngọc hành≠Ngọc Hạnh, giao hoan≠giao hoán,
+    # cương cứng≠cường cung, cực khoái≠cục khoai, khoái lạc≠khoai lạc, hiếp dâm≠hiệp đàm,
+    # cưỡng hiếp≠cường hiệp, dâm tiện≠đâm tiến, làm tình≠làm tinh(tế), nhà thổ≠nhà thờ
+    "âm đạo", "dương cụ", "ngọc hành", "giao hoan", "cương cứng", "cực khoái", "khoái lạc",
+    "hiếp dâm", "cưỡng hiếp", "dâm tiện", "làm tình", "phát tình", "sắc tình", "nhà thổ",
 ]
 
 # --- Layer 4 (OPT-IN): high-recall, FP-prone. Only counted when include_weak=True. ---

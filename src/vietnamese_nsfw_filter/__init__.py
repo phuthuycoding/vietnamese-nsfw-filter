@@ -22,7 +22,7 @@ from .lexicon import (
 from .normalize import normalize
 from .thin import is_thin, DEFAULT_MIN_CHARS
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "DEFAULT_HIT_THRESHOLD",
