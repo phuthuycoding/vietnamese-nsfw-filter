@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 """Lexicon-based explicit/NSFW detector for Vietnamese text.
 
-Two matching layers (because de-accenting Vietnamese collides with normal words):
+Matching layers (de-accenting Vietnamese collides with normal words, so we split):
 
-1. SAFE_DEACCENT — Sino-Vietnamese clinical terms whose de-accented form does NOT
-   collide with common words (e.g. "duong vat", "xuat tinh"). Matched on de-accented
-   text -> tolerant to FONT-CORRUPTED text (missing diacritics), common in scraped data.
+1. SAFE_DEACCENT — Sino-Vietnamese / compound terms whose de-accented form does NOT
+   collide with common words ("duong vat", "xuat tinh"). Matched on DE-ACCENTED text
+   -> tolerant to FONT-CORRUPTED text (missing diacritics), common in scraped data.
+2. ENGLISH — borrowed/loan explicit words (ascii), matched on de-accented text.
+3. ACCENT — native vulgar + Sino-Vietnamese whose de-accented form WOULD collide
+   ("dâm đãng" vs "đảm đang", "bắn tinh" vs "bản tính", "nứng" vs "nung nấu").
+   Matched WITH diacritics on NFC text -> high precision.
+4. WEAK (opt-in) — high-recall but FP-prone terms ("vú", "mông", "bú", "lên giường"...)
+   counted only when `include_weak=True`.
 
-2. ACCENT — terms whose de-accented form WOULD collide with normal words
-   ("dâm đãng" vs "đảm đang", "bắn tinh" vs "bản tính", "nứng" vs "nung nấu") plus
-   native Vietnamese slang. Matched WITH diacritics on NFC text -> high precision.
-
-Counting word density (not a single hit) keeps precision high: erotica repeats these
-terms heavily, while clean romance barely uses them.
+Counting keyword DENSITY (not a single hit) keeps precision high: erotica repeats these
+terms heavily, clean text barely uses them.
 """
 from __future__ import annotations
 
@@ -21,43 +23,81 @@ import unicodedata
 
 DEFAULT_HIT_THRESHOLD = 3  # a chunk is "explicit" if it matches >= this many keywords
 
-# --- Layer 1: de-accented (font-tolerant). Audited: de-accented form has no common collision. ---
+# --- Layer 1: de-accented, font-tolerant. Audited: de-accented form has no common collision. ---
 SAFE_DEACCENT = [
-    # genitalia (clinical Sino-Vietnamese)
-    "duong vat", "am dao", "am ho", "am vat", "am he", "duong can", "duong cu",
-    "ngoc hanh", "quy dau", "cu vat", "nhuc bong", "num vu",
-    "hoa huyet", "mat huyet", "hau huyet", "huyet khau", "hau dinh",
+    # genitalia (clinical Sino-Vietnamese / anatomical)
+    "duong vat", "duong can", "duong cu", "duong khoi", "cuong vat",
+    "am dao", "am ho", "am vat", "am he", "am mao",
+    "ngoc hanh", "quy dau", "bao quy dau", "cu vat", "nhuc bong", "num vu",
+    "hoa huyet", "mat huyet", "hau huyet", "huyet khau", "hau dinh", "hau mon",
+    "hoa kinh", "noi am", "tinh hoan", "long mu", "tu cung", "ham huyet",
     # fluids
-    "tinh dich", "xuat tinh", "phun tinh", "phong tinh", "dam thuy", "dam dich", "bach dich",
+    "tinh dich", "tinh trung", "xuat tinh", "phun tinh", "phong tinh",
+    "dam thuy", "dam dich", "ai dich", "hoa dich", "bach dich", "dam thui",
     # acts
-    "lam tinh", "giao hop", "giao cau", "giao hoan", "an ai", "khau giao",
-    "tham nhap", "dam vao", "dut vao", "cam vao", "thoc vao", "dam thuc", "tien nhap",
-    "dau luoi", "dao luoi", "liem", "bu mut", "co xat", "cuong cung",
-    # states / arousal
-    "dam duc", "dam tien", "phat tinh", "sac tinh", "cuc khoai", "khoai cam", "khoai lac",
-    # undressing / nudity
-    "khoa than", "tran truong", "tran trui", "coi quan", "quan lot", "tuot quan", "lo than",
-    # sexual crimes
-    "hiep dam", "cuong gian", "cuong hiep", "thu dam", "loan luan", "thong dam",
+    "lam tinh", "giao hop", "giao cau", "giao hoan", "giao phoi", "an ai", "hoan ai",
+    "khau giao", "tham nhap", "dam vao", "dut vao", "cam vao", "thoc vao", "dam thuc",
+    "tien nhap", "dao luoi", "dau luoi", "co xat", "cuong cung", "thu dam", "tu suong",
+    "quan he tinh duc", "lam chuyen ay",
+    # states / arousal / lust
+    "dam duc", "dam loan", "dam tien", "dam dat", "dam o", "gian dam", "ta dam",
+    "au dam", "phat tinh", "sac tinh", "sac duc", "cuc khoai", "khoai cam", "khoai lac",
+    "xuan tinh", "cuong dam", "cuong duc", "duc vong", "duc tinh", "hieu dam", "hao sac",
+    "dam buc", "thong dam", "loan luan", "nhuc duc", "tham duc",
+    # crimes / prostitution
+    "hiep dam", "cuong gian", "cuong hiep", "kich duc", "kich dam", "ham hiep", "ga tinh",
+    "mai dam", "ban dam", "gai goi", "gai diem", "diem dang", "lau xanh", "nha tho",
 ]
 
-# --- Layer 2: matched WITH diacritics (high precision). Homograph-prone + native slang. ---
+# --- Layer 2: borrowed English explicit words (ascii, matched on de-accented text). ---
+ENGLISH = [
+    "sex", "sexy", "sextoy", "porn", "porno", "pornhub", "xnxx", "xvideos",
+    "jav", "hentai", "nsfw", "xxx", "fuck", "fucking", "dick", "cock", "pussy",
+    "blowjob", "handjob", "footjob", "deepthroat", "orgasm", "masturbate", "masturbation",
+    "nude", "naked", "horny", "boobs", "boob", "tits", "nipple", "penis", "vagina",
+    "anal", "milf", "gangbang", "threesome", "bdsm", "dildo", "vibrator", "erotic",
+    "slut", "whore", "cunt", "clit", "bisexual", "camgirl", "onlyfans", "creampie",
+]
+
+# --- Layer 3: matched WITH diacritics (precise). Native vulgar + homograph-prone Sino-Viet. ---
 ACCENT = [
-    # Sino-Vietnamese that collide when de-accented -> must keep diacritics
-    "dâm đãng", "dâm loạn", "bắn tinh", "đăng đỉnh", "lên đỉnh", "động dục",
-    "nhũ hoa", "đầu ngực", "trương to", "phòng the", "truy hoan", "hoan ái", "lẳng lơ",
-    "dâm phụ", "dâm dật", "bạo dâm", "cuồng dâm", "cuồng dục", "dục tình",
-    "kích dục", "kích dâm", "hãm hiếp", "gạ tình",
-    # native Vietnamese vulgar (diacritics distinguish: buồi!=buổi, địt!=đít, lồn!=lớn, nứng!=nung)
-    "lồn", "cặc", "buồi", "địt", "đụ", "nứng", "chịch", "lìn",
-    "bú cặc", "địt nhau", "đụ nhau", "phá trinh",
+    # native vulgar single words (diacritics distinguish: buồi!=buổi, địt!=đít, lồn!=lớn, nứng!=nung)
+    "lồn", "cặc", "buồi", "địt", "đụ", "nứng", "chịch", "lìn", "đĩ",
+    # vulgar / profanity compounds
+    "địt mẹ", "địt mẹ mày", "đụ má", "đụ mẹ", "đéo mẹ", "vãi lồn", "vãi cặc",
+    "bú lồn", "ăn cặc", "bú cặc", "bú buồi", "liếm lồn", "mút cặc",
+    "địt nhau", "đụ nhau", "chịch nhau", "phang nhau", "xoạc nhau", "vét máng",
+    "chịch choạc", "gạ chịch", "gạ địt", "đút buồi", "nhét cặc",
+    "nứng lồn", "nứng cặc", "nứng tình", "đầu buồi", "hòn dái", "bóp dái",
+    "gái điếm", "đĩ điếm", "con điếm", "phá trinh",
+    # Sino-Vietnamese that collide when de-accented -> keep diacritics
+    "dâm đãng", "dâm phụ", "dâm dật", "dâm tà", "bạo dâm", "cuồng dâm", "hiếu dâm",
+    "bắn tinh", "phóng tinh", "đăng đỉnh", "lên đỉnh", "động dục", "trương to",
+    "nhũ hoa", "đầu ngực", "phòng the", "truy hoan", "lẳng lơ", "cưỡng bức",
+    "mây mưa", "vân vũ", "ái ân", "ân ái", "động phòng",
+]
+
+# --- Layer 4 (OPT-IN): high-recall, FP-prone. Only counted when include_weak=True. ---
+WEAK = [
+    "vú", "mông", "ngực", "dái", "đùi non", "eo thon", "ngực trần", "khe ngực",
+    "bú", "mút", "liếm", "đút", "nhét", "thọc", "vê", "bóp", "sờ", "sờ soạng",
+    "lên giường", "ngủ với", "quan hệ", "động phòng", "ham muốn", "thèm khát",
+    "khỏa thân", "trần truồng", "trần như nhộng", "lõa thể",
+    "rên rỉ", "rên la", "thở dốc", "hổn hển", "ướt đẫm", "khêu gợi", "gợi cảm", "phê",
 ]
 
 _NON_AZ = re.compile(r"[^a-z\s]+")
 _WS = re.compile(r"\s+")
 _PUNCT_U = re.compile(r"[^\w]+", re.UNICODE)
-_SAFE_PATTERN = re.compile(r"\b(?:" + "|".join(re.escape(t) for t in SAFE_DEACCENT) + r")\b")
-_ACCENT_PATTERN = re.compile(r"\b(?:" + "|".join(re.escape(t) for t in ACCENT) + r")\b", re.UNICODE)
+
+
+def _build(terms):
+    return re.compile(r"\b(?:" + "|".join(re.escape(t) for t in terms) + r")\b", re.UNICODE)
+
+
+_DEACCENT_PATTERN = _build(SAFE_DEACCENT + ENGLISH)
+_ACCENT_PATTERN = _build(ACCENT)
+_WEAK_PATTERN = _build(WEAK)
 
 
 def deaccent(s: str) -> str:
@@ -71,17 +111,26 @@ def deaccent(s: str) -> str:
 
 
 def _norm_keep(s: str) -> str:
-    """NFC + lowercase, KEEP diacritics (to match native vulgar terms)."""
+    """NFC + lowercase, KEEP diacritics (to match native vulgar / homograph terms)."""
     s = unicodedata.normalize("NFC", s.lower())
     s = _PUNCT_U.sub(" ", s)
     return _WS.sub(" ", s).strip()
 
 
-def count_hits(text: str) -> int:
-    """Total explicit-keyword matches: de-accent layer (font-tolerant) + accent layer (precise)."""
-    return len(_SAFE_PATTERN.findall(deaccent(text))) + len(_ACCENT_PATTERN.findall(_norm_keep(text)))
+def count_hits(text: str, include_weak: bool = False) -> int:
+    """Total explicit-keyword matches.
+
+    Default = precision-tuned (de-accent clinical/English + accented native/homograph).
+    `include_weak=True` adds the high-recall WEAK layer (more catches, more false positives).
+    """
+    deacc = deaccent(text)
+    keep = _norm_keep(text)
+    n = len(_DEACCENT_PATTERN.findall(deacc)) + len(_ACCENT_PATTERN.findall(keep))
+    if include_weak:
+        n += len(_WEAK_PATTERN.findall(keep))
+    return n
 
 
-def is_explicit(text: str, threshold: int = DEFAULT_HIT_THRESHOLD) -> bool:
+def is_explicit(text: str, threshold: int = DEFAULT_HIT_THRESHOLD, include_weak: bool = False) -> bool:
     """True if the text matches >= `threshold` explicit keywords."""
-    return count_hits(text) >= threshold
+    return count_hits(text, include_weak=include_weak) >= threshold

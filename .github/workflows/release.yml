@@ -1,0 +1,44 @@
+name: Release to PyPI
+
+# Tạo 1 GitHub Release (tag vX.Y.Z) -> tự build wheel/sdist + publish lên PyPI.
+# Dùng Trusted Publishing (OIDC) — KHÔNG cần token: cấu hình 1 lần ở
+# https://pypi.org/manage/project/vietnamese-nsfw-filter/settings/publishing/
+#   owner=phuthuycoding, repo=vietnamese-nsfw-filter, workflow=release.yml, environment=pypi
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build sdist + wheel
+        run: |
+          pip install build
+          python -m build
+      - name: Check metadata
+        run: |
+          pip install twine
+          twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write   # OIDC trusted publishing — không cần PyPI token
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

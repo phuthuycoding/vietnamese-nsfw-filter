@@ -1,5 +1,10 @@
 # vietnamese-nsfw-filter
 
+[![CI](https://github.com/phuthuycoding/vietnamese-nsfw-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/phuthuycoding/vietnamese-nsfw-filter/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/vietnamese-nsfw-filter.svg)](https://pypi.org/project/vietnamese-nsfw-filter/)
+[![Python](https://img.shields.io/pypi/pyversions/vietnamese-nsfw-filter.svg)](https://pypi.org/project/vietnamese-nsfw-filter/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 Lexicon-based **NSFW / explicit text detector for Vietnamese**. Counts the density of
 explicit keywords — **no model, no GPU, pure stdlib**. Built for moderating large
 corpora of Vietnamese web-novel / UGC text where you need to flag pornographic content
@@ -29,8 +34,12 @@ is_explicit("Hắn đút dương vật vào âm đạo, làm tình mãnh liệt.
 is_explicit("Hôm nay trời đẹp, cả nhà ra đồng gặt lúa.")            # False
 
 count_hits("...")        # number of explicit keywords matched
-is_explicit(text, threshold=5)   # custom sensitivity (default 3)
+is_explicit(text, threshold=5)            # custom sensitivity (default 3)
+is_explicit(text, include_weak=True)      # high-recall mode (adds FP-prone WEAK terms)
 ```
+
+The lexicon ships ~250 terms across layers `SAFE_DEACCENT`, `ENGLISH`, `ACCENT`
+(counted by default) and `WEAK` (opt-in via `include_weak=True`).
 
 Helpers for noisy scraped text:
 

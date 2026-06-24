@@ -11,7 +11,9 @@ Tolerant to font-corrupted (missing-diacritic) text; no model/GPU needed.
 from .lexicon import (
     DEFAULT_HIT_THRESHOLD,
     SAFE_DEACCENT,
+    ENGLISH,
     ACCENT,
+    WEAK,
     deaccent,
     count_hits,
     is_explicit,
@@ -24,7 +26,9 @@ __version__ = "0.1.0"
 __all__ = [
     "DEFAULT_HIT_THRESHOLD",
     "SAFE_DEACCENT",
+    "ENGLISH",
     "ACCENT",
+    "WEAK",
     "deaccent",
     "count_hits",
     "is_explicit",

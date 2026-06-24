@@ -33,6 +33,18 @@ def test_native_vulgar_terms():
     assert count_hits(text) >= 4
 
 
+def test_english_loanwords():
+    text = "Thằng này toàn xem phim porn với hentai, search sex suốt ngày."
+    assert count_hits(text) >= 3
+
+
+def test_weak_layer_opt_in():
+    text = "Hai người lên giường, quan hệ tình dục, rồi ngủ với nhau."
+    base = count_hits(text)                      # default: ít/không (toàn từ WEAK)
+    broad = count_hits(text, include_weak=True)  # bật WEAK -> bắt nhiều hơn
+    assert broad > base
+
+
 def test_no_false_positive_on_homographs():
     # buổi/lớn/đám/đảm KHÔNG bị nhầm thành buồi/lồn/dâm
     text = ("Buổi sáng đám đông lớn dần, cô gái đảm đang nấu cơm, "
