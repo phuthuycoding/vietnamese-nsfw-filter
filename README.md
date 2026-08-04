@@ -84,6 +84,12 @@ When adding a term: if its de-accented form could be a normal Vietnamese word, p
 - Lexicon/density catches *depiction* (porn) well; it can **miss euphemism-heavy** prose
   and is **not** a substitute for human review on removal decisions — use it as a
   high-recall first filter, then review/escalate the flagged set.
+- **Self-censored text (`dương v*t`, `l*n`, `tiểu huy*t`) is NOT handled.** Many scraped
+  sources mask blocklisted words with `*` — but they mask **violence and everyday words
+  too** (`giết→g**t`, `điếm→đ**m`, `của→c*a`), so the `*` itself is **not** an NSFW signal.
+  Do **not** treat censored tokens as explicit (it false-positives heavily on wuxia/action).
+  Restore the text first (e.g. from a corpus of the same source's *un*censored words), then
+  run this lexicon on the cleaned text.
 
 ## ⚠️ Content notice
 

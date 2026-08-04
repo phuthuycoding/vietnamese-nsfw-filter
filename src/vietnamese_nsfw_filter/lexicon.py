@@ -30,9 +30,10 @@ SAFE_DEACCENT = [
     "am ho", "am vat", "am he", "am mao",
     "quy dau", "bao quy dau", "cu vat", "nhuc bong", "num vu",
     "hau dinh", "hau mon", "tinh hoan", "long mu",
-    # fluids
-    "tinh dich", "tinh trung", "xuat tinh", "phun tinh",
-    "dam thuy", "dam dich", "ai dich", "hoa dich", "bach dich", "dam thui",
+    # fluids (BỎ "tinh dich" -> trùng "tình địch" (love rival) khi bỏ dấu -> chuyển ACCENT;
+    #         BỎ "bach dich" -> trùng tên riêng "Bạch Dịch" phổ biến trong truyện tu tiên -> WEAK)
+    "tinh trung", "xuat tinh", "phun tinh",
+    "dam thuy", "dam dich", "ai dich", "hoa dich", "dam thui",
     # acts (BỎ động từ đa nghĩa: tham nhap/dam vao/dut vao/cam vao/thoc vao/tien nhap +
     # dao luoi/dau luoi/co xat/dam thuc -> trùng văn chiến đấu/đời thường)
     "giao hop", "giao cau", "giao phoi", "an ai", "hoan ai", "khau giao",
@@ -67,19 +68,21 @@ ACCENT = [
     "bú lồn", "ăn cặc", "bú cặc", "bú buồi", "liếm lồn", "mút cặc",
     "địt nhau", "đụ nhau", "chịch nhau", "phang nhau", "xoạc nhau", "vét máng",
     "chịch choạc", "gạ chịch", "gạ địt", "đút buồi", "nhét cặc",
+    "banh háng", "xéo háng", "đút đít", "húp sò",
     "nứng lồn", "nứng cặc", "nứng tình", "đầu buồi", "hòn dái", "bóp dái",
     "gái điếm", "đĩ điếm", "con điếm", "phá trinh",
     # Sino-Vietnamese that collide when de-accented -> keep diacritics
     # (BỎ "đăng đỉnh"/"lên đỉnh"/"trương to" -> trùng leo đỉnh núi / phồng to trong tiên hiệp)
     "dâm đãng", "dâm phụ", "dâm dật", "dâm tà", "bạo dâm", "cuồng dâm", "hiếu dâm",
-    "bắn tinh", "phóng tinh", "động dục",
+    "bắn tinh", "phóng tinh", "động dục", "tinh dịch",
     "nhũ hoa", "đầu ngực", "phòng the", "truy hoan", "lẳng lơ", "cưỡng bức",
     "mây mưa", "vân vũ", "ái ân", "ân ái", "động phòng",
     # CHUYỂN từ lớp bỏ-dấu sang (bỏ dấu trùng tiên hiệp/đời thường, giữ dấu để phân biệt):
     # âm đạo≠ám đạo, dương cụ≠đường cũ, ngọc hành≠Ngọc Hạnh, giao hoan≠giao hoán,
-    # cương cứng≠cường cung, cực khoái≠cục khoai, khoái lạc≠khoai lạc, hiếp dâm≠hiệp đàm,
+    # cương cứng≠cường cung, cực khoái≠cục khoai, hiếp dâm≠hiệp đàm,
     # cưỡng hiếp≠cường hiệp, dâm tiện≠đâm tiến, làm tình≠làm tinh(tế), nhà thổ≠nhà thờ
-    "âm đạo", "dương cụ", "ngọc hành", "giao hoan", "cương cứng", "cực khoái", "khoái lạc",
+    # (BỎ "khoái lạc" -> nghĩa "vui sướng" đời thường + tên riêng "Khoái Lạc Vương" -> WEAK)
+    "âm đạo", "dương cụ", "ngọc hành", "giao hoan", "cương cứng", "cực khoái",
     "hiếp dâm", "cưỡng hiếp", "dâm tiện", "làm tình", "phát tình", "sắc tình", "nhà thổ",
 ]
 
@@ -93,6 +96,8 @@ WEAK = [
     "lên giường", "ngủ với", "quan hệ", "động phòng", "ham muốn", "thèm khát",
     "khỏa thân", "trần truồng", "trần như nhộng", "lõa thể",
     "rên rỉ", "rên la", "thở dốc", "hổn hển", "ướt đẫm", "khêu gợi", "gợi cảm", "phê",
+    # đa nghĩa / trùng tên riêng -> chỉ tính khi opt-in
+    "khoái lạc", "bạch dịch", "chổng mông", "xoạc",
     # lóng / vùng miền / ẩn dụ bộ phận (đa nghĩa -> FP)
     "chim", "bướm", "cu", "cò", "cậu nhỏ", "thằng nhỏ", "cô bé", "của quý",
     "chỗ ấy", "chỗ kín", "vùng kín", "tam giác mật", "núi đôi", "gò bồng đảo",

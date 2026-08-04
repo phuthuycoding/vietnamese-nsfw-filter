@@ -76,3 +76,31 @@ def test_no_false_positive_on_homographs():
     text = ("Buổi sáng đám đông lớn dần, cô gái đảm đang nấu cơm, "
             "cậu bé lớn lên ngoan ngoãn, ngồi xuống, đứng dậy.") * 2
     assert count_hits(text) == 0
+
+
+def test_no_fp_tinh_dich_vs_tinh_dich_love_rival():
+    # "tình địch" (love rival) de-accent = "tinh dich" trùng "tinh dịch" (semen).
+    # -> "tinh dịch" phải ở lớp CÓ DẤU để không bắt nhầm.
+    rival = "người yêu cũ và tình địch của tôi, tình địch ấy, gặp lại tình địch xưa." * 2
+    assert count_hits(rival) == 0, f"FP tình địch! count={count_hits(rival)}"
+    # nhưng "tinh dịch" thật (đúng dấu) vẫn bắt
+    assert count_hits("tinh dịch bắn ra, nhiều tinh dịch, tinh dịch dính đầy") >= 3
+
+
+def test_no_fp_khoai_lac_and_proper_name():
+    # "khoái lạc" = vui sướng đời thường + tên riêng "Khoái Lạc Vương" -> mặc định KHÔNG tính
+    text = "trong lòng tràn ngập khoái lạc, khoái lạc vô biên, Khoái Lạc Vương xuất hiện." * 2
+    assert count_hits(text) == 0
+    # opt-in WEAK thì có tính (cho ai cần recall cao)
+    assert count_hits(text, include_weak=True) >= 3
+
+
+def test_no_fp_bach_dich_proper_name():
+    # "Bạch Dịch" là tên nhân vật phổ biến (tu tiên) -> mặc định KHÔNG tính
+    text = "Bạch Dịch gọi sư huynh, Bạch Dịch hắn rời đi, Bạch Dịch luyện đan." * 2
+    assert count_hits(text) == 0
+
+
+def test_new_explicit_act_terms():
+    # từ bổ sung từ opensource (blue-eyes-vn), đã lọc collision
+    assert count_hits("nàng banh háng, hắn đút đít, húp sò, xéo háng") >= 3
